@@ -12,11 +12,14 @@ public class Noty {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
+    private long chatId;
+    private String content;
 
-    Long chatId;
+//    here must be field for scheduled time
 
-    String content;
+// Whether more fields required?
+
 
     public Noty(Long id, Long chatId, String content) {
         this.id = id;
@@ -24,7 +27,8 @@ public class Noty {
         this.content = content;
     }
 
-    public Noty(){}
+    public Noty() {
+    }
 
     public Long getId() {
         return id;
