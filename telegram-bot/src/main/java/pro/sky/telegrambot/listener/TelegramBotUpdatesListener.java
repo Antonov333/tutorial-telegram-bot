@@ -16,12 +16,17 @@ import pro.sky.telegrambot.repository.NotyRepository;
 import javax.annotation.PostConstruct;
 import javax.swing.text.html.parser.Entity;
 import java.util.List;
+import java.util.regex.Pattern;
 
 
 @Service
 public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private final NotyRepository noties;
+
+    private enum Command {START, HELP, VIEW, SET, UNCLEAR}
+
+    ;
 
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
@@ -40,8 +45,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     @Override
     public int process(List<Update> updates) {
-
-
+        String userInput;
         updates.forEach(update -> {
             String helpText = "/help : get command list\n"
                     + "send a string like to set up a notification";
@@ -76,11 +80,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     break;
                 }
             }
-            /*sendMessage(chatId, "List of available commands is under construction and should be provided to you soon");
-            System.out.println("update = " + update);
-            System.out.println("update.message().chat().id() = " + update.message().chat().id());
-            System.out.println("update.message().text() = " + update.message().text());*/
-
 
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
@@ -94,6 +93,14 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     @Scheduled(cron = "0 0/1 * * * *")
     public void tryScheduled() {
         logger.info("tryScheduled()");
+    }
+
+    private List<String> userInputParsing(String userInput) {
+        // (([01][0-9])|(2[0-3])):[0-5][0-9] pattern for hours in 24h format (00 - 23)and minutes (00 - 59)
+        // separated by colon
+
+        Pattern pattern = Pattern.compile("(([01][0-9])|(2[0-3])):[0-5][0-9]");
+        return null;
     }
 
 }
