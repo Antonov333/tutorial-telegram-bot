@@ -4,7 +4,6 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
-import org.hibernate.criterion.Example;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,7 @@ import pro.sky.telegrambot.model.Noty;
 import pro.sky.telegrambot.repository.NotyRepository;
 
 import javax.annotation.PostConstruct;
-import javax.swing.text.html.parser.Entity;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -60,24 +59,48 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
             long chatId = update.message().chat().id();
             String string = update.message().text();
-            System.out.println("considerCommand(string) = " + considerCommand(string));
-            switch (string) {
-                case "/start": {
-                    noties.save(new Noty(0L, chatId, "/start command received"));
+            logger.info("User has just replied us with command: " + considerCommand(string).toString());
+            switch (considerCommand(string)) {
+                case START: {
                     sendMessage(chatId, startText);
                     break;
                 }
-                case "/help": {
-                    noties.save(new Noty(0L, chatId, "/help command received"));
+                case HELP: {
                     sendMessage(chatId, helpText);
                     break;
                 }
-                case "/view": {
+                case VIEW: {
                     sendMessage(chatId, noties.findAllByChatId(chatId).toString());
                     break;
                 }
+
+                case SET: {
+                    string = string.substring(4);
+                    logger.info("String=" + string);
+                    if (!setImplicitRecognize(string).isSetImplicit()) {
+                        sendMessage(chatId, "wrong data provided with /set command");
+                        break;
+                    }
+                }
+
+                case SET_IMPLICIT: {
+                    Noty n = new Noty(0L,
+                            chatId,
+                            takeTiming(setImplicitRecognize(string)),
+                            setImplicitRecognize(string).getTaskDescription());
+                    logger.info("Set command received with data as follows: " + n.toString());
+                    n = noties.save(n);
+                    sendMessage(chatId, "Notification regarding: " + n.getContent()
+                            + " appointed at " + n.getTimeToNotify());
+                    break;
+                }
+
+                case DELETE: {
+                    sendMessage(chatId, "Command DELETE is under construction yet, sorry...");
+                    break;
+                }
+
                 default: {
-                    noties.save(new Noty(1L, chatId, "some input received"));
                     sendMessage(chatId, defaultText);
                     break;
                 }
@@ -93,26 +116,34 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     }
 
     @Scheduled(cron = "0 0/1 * * * *")
-    public void tryScheduled() {
-        logger.info("tryScheduled()");
-    }
+    public void sendNotifications() {
+        LocalDateTime localDateTime = LocalDateTime.now();
+        String moment = localDateTime.toString();
+        moment = moment.replaceAll("[-:T]", "").substring(0, 12);
+        logger.info("moment = " + moment);
+        List<Noty> thisMinuteNoties = noties.findAllByTimeToNotify(moment);
+        logger.info(thisMinuteNoties.toString());
 
-    private List<String> userInputParsing(String userInput) {
-        // (([01][0-9])|(2[0-3])):[0-5][0-9] pattern for hours in 24h format (00 - 23)and minutes (00 - 59)
-        // separated by colon
-
-        Pattern pattern = Pattern.compile("(([01][0-9])|(2[0-3])):[0-5][0-9]");
-        return null;
+        thisMinuteNoties.forEach(noty -> {
+                    logger.info(noty.toString());
+                    sendMessage(noty.getChatId(), noty.getContent());
+                }
+        );
     }
 
     private Command considerCommand(String userInput) {
+
         if (userInput == null) {
             return Command.UNCLEAR;
         }
+
         if (userInput.isEmpty()) {
             return Command.UNCLEAR;
         }
+
         String input = userInput.toLowerCase();
+
+        logger.info("userInput : " + input);
 
         if (input.startsWith("/start")) {
             return Command.START;
@@ -124,7 +155,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         if (input.startsWith("/view")) {
             return Command.VIEW;
         }
-        if (input.startsWith("/set") & input.length() > 19) {
+        if (input.startsWith("/set")) {
             return Command.SET;
         }
 
@@ -233,4 +264,19 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         }
         return result;
     }
+
+    private String takeTiming(SetImplicitRecognition setCommandContent) {
+        String dString = setCommandContent.getDateString().replace(".", "");
+        String dd = dString.substring(0, 2);
+        String mm = dString.substring(2, 4);
+        String yyyy = dString.substring(4, 8);
+        dString = yyyy + mm + dd;
+        logger.info("dString: " + dString);
+
+        String tString = setCommandContent.getTimeString().replace(":", "");
+
+        return dString.concat(tString);
+    }
+
+
 }

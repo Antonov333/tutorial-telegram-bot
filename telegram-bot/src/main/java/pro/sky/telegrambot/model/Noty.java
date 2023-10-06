@@ -14,6 +14,21 @@ public class Noty {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private long chatId;
+
+    private String timeToNotify;
+
+    public void setChatId(long chatId) {
+        this.chatId = chatId;
+    }
+
+    public String getTimeToNotify() {
+        return timeToNotify;
+    }
+
+    public void setTimeToNotify(String timeToNotify) {
+        this.timeToNotify = timeToNotify;
+    }
+
     private String content;
 
 //    here must be field for scheduled time
@@ -21,9 +36,10 @@ public class Noty {
 // Whether more fields required?
 
 
-    public Noty(Long id, Long chatId, String content) {
+    public Noty(Long id, Long chatId, String timeToNotify, String content) {
         this.id = id;
         this.chatId = chatId;
+        this.timeToNotify = timeToNotify;
         this.content = content;
     }
 
@@ -72,6 +88,7 @@ public class Noty {
         return "Noty{" +
                 "id=" + id +
                 ", chatId=" + chatId +
+                ", timeToNotify=" + timeToNotify +
                 ", content='" + content + '\'' +
                 '}';
     }
