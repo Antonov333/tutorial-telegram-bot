@@ -75,8 +75,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 }
 
                 case SET: {
-                    string = string.substring(4);
-                    logger.info("String=" + string);
+                    if (string.length() > 5) {
+                        string = string.substring(5);
+                    }
                     if (!setImplicitRecognize(string).isSetImplicit()) {
                         sendMessage(chatId, "wrong data provided with /set command");
                         break;
