@@ -272,7 +272,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         String mm = dString.substring(2, 4);
         String yyyy = dString.substring(4, 8);
         dString = yyyy + mm + dd;
-        logger.info("dString: " + dString);
 
         String tString = setCommandContent.getTimeString().replace(":", "");
 
