@@ -1,21 +1,23 @@
 package pro.sky.telegrambot.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.util.Objects;
 
 // Noty is a model for notification
 @Entity
+@Table(name = "noty")
 public class Noty {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private long chatId;
 
+    @Column(name = "chat_id")
+    private long chatId;
+    @Column(name = "time_to_notify")
     private String timeToNotify;
+    @Column(name = "content")
+    private String content;
 
     public void setChatId(long chatId) {
         this.chatId = chatId;
@@ -28,12 +30,6 @@ public class Noty {
     public void setTimeToNotify(String timeToNotify) {
         this.timeToNotify = timeToNotify;
     }
-
-    private String content;
-
-//    here must be field for scheduled time
-
-// Whether more fields required?
 
 
     public Noty(Long id, Long chatId, String timeToNotify, String content) {
