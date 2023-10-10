@@ -4,6 +4,7 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
     @Autowired
-    private TelegramBot telegramBot;
+    final private TelegramBot telegramBot;
 
     public TelegramBotUpdatesListener(NotyRepository noties, TelegramBot telegramBot) {
         this.noties = noties;
@@ -111,25 +112,26 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
-    public void sendMessage(long chatId, String messageText) {
+    public String sendMessage(long chatId, String messageText) {
         SendMessage message = new SendMessage(chatId, messageText);
-        telegramBot.execute(message);
+        SendResponse response = telegramBot.execute(message);
+        return response.message().text();
     }
 
     @Scheduled(cron = "0 0/1 * * * *")
     public void sendNotifications() {
         LocalDateTime localDateTime = LocalDateTime.now();
         String moment = localDateTime.toString();
+        Boolean makeSureSentOk;
         moment = moment.replaceAll("[-:T]", "").substring(0, 12);
         logger.info("moment = " + moment);
         List<Noty> thisMinuteNoties = noties.findAllByTimeToNotify(moment);
         logger.info(thisMinuteNoties.toString());
 
         thisMinuteNoties.forEach(noty -> {
-                    logger.info(noty.toString());
-                    sendMessage(noty.getChatId(), noty.getContent());
-                }
-        );
+            logger.info(noty.toString());
+            sendMessage(noty.getChatId(), noty.getContent());
+        });
     }
 
     private Command considerCommand(String userInput) {
