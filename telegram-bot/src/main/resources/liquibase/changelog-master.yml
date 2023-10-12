@@ -1,2 +1,3 @@
+databaseChangeLog:
 - include:
-    file: liquibase/scripts/noty.sql
+      file: liquibase\scripts\noty.sql

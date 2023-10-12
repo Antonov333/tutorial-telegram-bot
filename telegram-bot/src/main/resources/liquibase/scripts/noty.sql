@@ -2,8 +2,8 @@
 
 -- changeset 1:sergei333
 CREATE TABLE noty(
-id serial
-chat_id int8
-time_to_notify text
-content text
+id bigserial primary key,
+chat_id INT8,
+time_to_notify TEXT,
+content TEXT
 )
