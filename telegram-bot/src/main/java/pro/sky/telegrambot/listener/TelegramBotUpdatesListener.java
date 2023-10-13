@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pro.sky.telegrambot.model.Noty;
 import pro.sky.telegrambot.repository.NotyRepository;
+import pro.sky.telegrambot.service.CommandProcessor;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
@@ -25,18 +26,17 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private final NotyRepository noties;
 
-    private enum Command {START, HELP, VIEW, SET, SET_IMPLICIT, EDIT, DELETE, UNCLEAR}
-
-    ;
-
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
     @Autowired
     final private TelegramBot telegramBot;
 
-    public TelegramBotUpdatesListener(NotyRepository noties, TelegramBot telegramBot) {
+    final private CommandProcessor commandProcessor;
+
+    public TelegramBotUpdatesListener(NotyRepository noties, TelegramBot telegramBot, CommandProcessor commandProcessor) {
         this.noties = noties;
         this.telegramBot = telegramBot;
+        this.commandProcessor = commandProcessor;
     }
 
     @PostConstruct
@@ -46,22 +46,25 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     @Override
     public int process(List<Update> updates) {
-        String userInput;
-        updates.forEach(update -> {
-            String helpText = "/help : get command list\n"
-                    + "send a string like to set up a notification";
-            String startText = "Hi! ) \n"
-                    + "You can use this bot to set up and receive notifications regarding your events and things to do\n"
-                    + helpText;
 
-            String defaultText = "Please use commands as follows\n" + helpText;
+        /*String helpText = "/help : get command list\n"
+                + "send a string like to set up a notification";
+        String startText = "Hi! ) \n"
+                + "You can use this bot to set up and receive notifications regarding your events and things to do\n"
+                + helpText;
+
+        String defaultText = "Please use commands as follows\n" + helpText;*/
+
+        updates.forEach(update -> {
+
             // Process your updates here
             logger.info("Processing update: {}", update);
 
             long chatId = update.message().chat().id();
-            String string = update.message().text();
-            logger.info("User has just replied us with command: " + considerCommand(string).toString());
-            switch (considerCommand(string)) {
+            String userInput = update.message().text();
+            logger.info("User has just replied us with command: " + CommandProcessor.considerCommand(userInput).toString());
+            commandProcessor.parseAndDo(chatId, userInput);
+            /*switch (CommandProcessor.considerCommand(string)) {
                 case START: {
                     sendMessage(chatId, startText);
                     break;
@@ -106,7 +109,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     sendMessage(chatId, defaultText);
                     break;
                 }
-            }
+            }*/
 
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
@@ -134,7 +137,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         });
     }
 
-    private Command considerCommand(String userInput) {
+    /*private Command considerCommand(String userInput) {
 
         if (userInput == null) {
             return Command.UNCLEAR;
@@ -171,7 +174,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         }
 
         return Command.UNCLEAR;
-    }
+    }*/
 
     private static class SetImplicitRecognition {
 
