@@ -29,11 +29,11 @@ public class CommandProcessorTest {
 
     final private Logger logger = LoggerFactory.getLogger("CommandProcessorTest");
 
+    @Mock
+    private TelegramBot bot;
+
     @InjectMocks
     private CommandProcessor commandProcessorMocked;
-
-    public CommandProcessorTest() {
-    }
 
     @Test
     void considerCommandTest() {

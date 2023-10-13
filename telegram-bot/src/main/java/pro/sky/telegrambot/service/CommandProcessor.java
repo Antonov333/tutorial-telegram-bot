@@ -6,8 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import pro.sky.telegrambot.model.Noty;
-import pro.sky.telegrambot.repository.NotyRepository;
+import pro.sky.telegrambot.model.NotificationTask;
+import pro.sky.telegrambot.repository.NotificationTaskRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,13 +17,13 @@ import java.util.regex.Pattern;
 @Service
 public class CommandProcessor {
 
-    private final NotyRepository noties;
+    private final NotificationTaskRepository noties;
 
     private final TelegramBot telegramBot;
 
     static Logger logger = LoggerFactory.getLogger("CommandProcessor Logger");
 
-    public CommandProcessor(NotyRepository noties, TelegramBot telegramBot) {
+    public CommandProcessor(NotificationTaskRepository noties, TelegramBot telegramBot) {
         this.noties = noties;
         this.telegramBot = telegramBot;
     }
@@ -70,7 +70,7 @@ public class CommandProcessor {
             }
 
             case SET_IMPLICIT: {
-                Noty n = new Noty(0L,
+                NotificationTask n = new NotificationTask(0L,
                         chatId,
                         takeTiming(setImplicitRecognize(userInput)),
                         setImplicitRecognize(userInput).getTaskDescription());
@@ -144,12 +144,12 @@ public class CommandProcessor {
         Boolean makeSureSentOk;
         moment = moment.replaceAll("[-:T]", "").substring(0, 12);
         logger.info("moment = " + moment);
-        List<Noty> thisMinuteNoties = noties.findAllByTimeToNotify(moment);
+        List<NotificationTask> thisMinuteNoties = noties.findAllByTimeToNotify(moment);
         logger.info(thisMinuteNoties.toString());
 
-        thisMinuteNoties.forEach(noty -> {
-            logger.info(noty.toString());
-            sendMessage(noty.getChatId(), noty.getContent());
+        thisMinuteNoties.forEach(notificationTask -> {
+            logger.info(notificationTask.toString());
+            sendMessage(notificationTask.getChatId(), notificationTask.getContent());
         });
     }
 

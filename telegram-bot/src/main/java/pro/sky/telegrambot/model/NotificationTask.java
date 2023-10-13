@@ -6,7 +6,7 @@ import java.util.Objects;
 // Noty is a model for notification
 @Entity
 @Table(name = "noty")
-public class Noty {
+public class NotificationTask {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,14 +32,14 @@ public class Noty {
     }
 
 
-    public Noty(Long id, Long chatId, String timeToNotify, String content) {
+    public NotificationTask(Long id, Long chatId, String timeToNotify, String content) {
         this.id = id;
         this.chatId = chatId;
         this.timeToNotify = timeToNotify;
         this.content = content;
     }
 
-    public Noty() {
+    public NotificationTask() {
     }
 
     public Long getId() {
@@ -69,9 +69,9 @@ public class Noty {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Noty)) return false;
-        Noty noty = (Noty) o;
-        return Objects.equals(getId(), noty.getId()) && Objects.equals(getChatId(), noty.getChatId()) && Objects.equals(getContent(), noty.getContent());
+        if (!(o instanceof NotificationTask)) return false;
+        NotificationTask notificationTask = (NotificationTask) o;
+        return Objects.equals(getId(), notificationTask.getId()) && Objects.equals(getChatId(), notificationTask.getChatId()) && Objects.equals(getContent(), notificationTask.getContent());
     }
 
     @Override
