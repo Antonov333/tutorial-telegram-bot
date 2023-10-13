@@ -11,6 +11,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import pro.sky.telegrambot.listener.TelegramBotUpdatesListener;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
 public class TelegramBotUpdatesListenerTest extends Mockito {
@@ -26,10 +28,6 @@ public class TelegramBotUpdatesListenerTest extends Mockito {
         Long chatId = -1L;
         String testText = " - Test text - ";
         SendMessage message = new SendMessage(chatId, testText);
-
-//        SendResponse response =
-
-//    String actual = updatesListener.sendMessage()
 
     }
 }

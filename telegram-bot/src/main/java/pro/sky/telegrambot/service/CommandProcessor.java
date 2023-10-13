@@ -1,14 +1,15 @@
 package pro.sky.telegrambot.service;
 
 import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pro.sky.telegrambot.model.Noty;
 import pro.sky.telegrambot.repository.NotyRepository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,18 +20,21 @@ public class CommandProcessor {
 
     private final NotyRepository noties;
 
+    private final Sendy sendy;
+
     static Logger logger = LoggerFactory.getLogger("CommandProcessor Logger");
 
-    public CommandProcessor(TelegramBot telegramBot, NotyRepository noties) {
+    public CommandProcessor(TelegramBot telegramBot, NotyRepository noties, Sendy sendy) {
         this.telegramBot = telegramBot;
         this.noties = noties;
+        this.sendy = sendy;
     }
 
     public enum Command {START, HELP, VIEW, SET, SET_IMPLICIT, EDIT, DELETE, UNCLEAR}
 
     ;
 
-    public Command parseAndDo(long chatId, String userInput) {
+    public void parseAndDo(long chatId, String userInput) {
 
         String helpText = "/help : get command list\n"
                 + "send a string like to set up a notification";
@@ -39,6 +43,8 @@ public class CommandProcessor {
                 + helpText;
 
         String defaultText = "Please use commands as follows\n" + helpText;
+
+        boolean checkMessageSent;
 
 
         switch (considerCommand(userInput)) {
@@ -87,7 +93,6 @@ public class CommandProcessor {
                 break;
             }
         }
-        return considerCommand(userInput);
     }
 
     public static Command considerCommand(String userInput) {
@@ -129,10 +134,28 @@ public class CommandProcessor {
         return Command.UNCLEAR;
     }
 
-    public String sendMessage(long chatId, String messageText) {
-        SendMessage message = new SendMessage(chatId, messageText);
-        SendResponse response = telegramBot.execute(message);
-        return response.message().text();
+    public boolean sendMessage(long userChatId, String messageText) {
+        boolean itIsOk = sendy.botExecute(userChatId, messageText);
+        if (!itIsOk) {
+            sendMessage(userChatId, messageText);
+        }
+        return itIsOk;
+    }
+
+    @Scheduled(cron = "0 0/1 * * * *")
+    public void sendNotifications() {
+        LocalDateTime localDateTime = LocalDateTime.now();
+        String moment = localDateTime.toString();
+        Boolean makeSureSentOk;
+        moment = moment.replaceAll("[-:T]", "").substring(0, 12);
+        logger.info("moment = " + moment);
+        List<Noty> thisMinuteNoties = noties.findAllByTimeToNotify(moment);
+        logger.info(thisMinuteNoties.toString());
+
+        thisMinuteNoties.forEach(noty -> {
+            logger.info(noty.toString());
+            sendMessage(noty.getChatId(), noty.getContent());
+        });
     }
 
     private static SetImplicitRecognition setImplicitRecognize(String userInput) {
