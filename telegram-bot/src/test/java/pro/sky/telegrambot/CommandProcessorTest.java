@@ -1,37 +1,39 @@
 package pro.sky.telegrambot;
 
 import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.response.SendResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
 import pro.sky.telegrambot.service.CommandProcessor;
+import pro.sky.telegrambot.service.Sendy;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
+//@SpringBootTest()
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
 public class CommandProcessorTest {
 
-    @Mock
-    TelegramBot telegramBotMock;
+
+    final private Logger logger = LoggerFactory.getLogger("CommandProcessorTest");
 
     @InjectMocks
-    CommandProcessor commandProcessorMocked;
+    private CommandProcessor commandProcessorMocked;
 
-//    private final CommandProcessor processor;
-//
-//    CommandProcessorTest(CommandProcessor processor){
-//        this.processor=processor;
-//    }
+    public CommandProcessorTest() {
+    }
 
     @Test
     void considerCommandTest() {
@@ -45,6 +47,11 @@ public class CommandProcessorTest {
         assertEquals(CommandProcessor.Command.SET_IMPLICIT,
                 CommandProcessor.considerCommand("13.10.2023 11:15 Checking SET IMPLICIT command"));
         assertEquals(CommandProcessor.Command.HELP, CommandProcessor.considerCommand("/help"));
+    }
+
+    @Test
+    void MakeSureCommandProcessorMockedIsNotNull() {
+        assertNotEquals(null, commandProcessorMocked);
     }
 
 }

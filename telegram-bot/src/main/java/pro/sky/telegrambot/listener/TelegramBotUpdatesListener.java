@@ -47,14 +47,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     @Override
     public int process(List<Update> updates) {
 
-        /*String helpText = "/help : get command list\n"
-                + "send a string like to set up a notification";
-        String startText = "Hi! ) \n"
-                + "You can use this bot to set up and receive notifications regarding your events and things to do\n"
-                + helpText;
-
-        String defaultText = "Please use commands as follows\n" + helpText;*/
-
         updates.forEach(update -> {
 
             // Process your updates here

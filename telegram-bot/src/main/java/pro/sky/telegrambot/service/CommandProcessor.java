@@ -1,6 +1,7 @@
 package pro.sky.telegrambot.service;
 
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.request.SendMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,18 +17,15 @@ import java.util.regex.Pattern;
 @Service
 public class CommandProcessor {
 
-    private final TelegramBot telegramBot;
-
     private final NotyRepository noties;
 
-    private final Sendy sendy;
+    private final TelegramBot telegramBot;
 
     static Logger logger = LoggerFactory.getLogger("CommandProcessor Logger");
 
-    public CommandProcessor(TelegramBot telegramBot, NotyRepository noties, Sendy sendy) {
-        this.telegramBot = telegramBot;
+    public CommandProcessor(NotyRepository noties, TelegramBot telegramBot) {
         this.noties = noties;
-        this.sendy = sendy;
+        this.telegramBot = telegramBot;
     }
 
     public enum Command {START, HELP, VIEW, SET, SET_IMPLICIT, EDIT, DELETE, UNCLEAR}
@@ -134,12 +132,9 @@ public class CommandProcessor {
         return Command.UNCLEAR;
     }
 
-    public boolean sendMessage(long userChatId, String messageText) {
-        boolean itIsOk = sendy.botExecute(userChatId, messageText);
-        if (!itIsOk) {
-            sendMessage(userChatId, messageText);
-        }
-        return itIsOk;
+    public void sendMessage(long userChatId, String messageText) {
+        SendMessage message = new SendMessage(userChatId, messageText);
+        telegramBot.execute(message);
     }
 
     @Scheduled(cron = "0 0/1 * * * *")
@@ -156,6 +151,10 @@ public class CommandProcessor {
             logger.info(noty.toString());
             sendMessage(noty.getChatId(), noty.getContent());
         });
+    }
+
+    public void logItsOk() {
+        logger.info("it is OK");
     }
 
     private static SetImplicitRecognition setImplicitRecognize(String userInput) {
