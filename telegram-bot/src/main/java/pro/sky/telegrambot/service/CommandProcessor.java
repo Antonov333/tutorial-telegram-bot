@@ -17,20 +17,21 @@ import java.util.regex.Pattern;
 @Service
 public class CommandProcessor {
 
-    private final NotificationTaskRepository noties;
+    private final NotificationTaskRepository notificationTaskRepository;
 
     private final TelegramBot telegramBot;
 
     static Logger logger = LoggerFactory.getLogger("CommandProcessor Logger");
 
-    public CommandProcessor(NotificationTaskRepository noties, TelegramBot telegramBot) {
-        this.noties = noties;
+    public CommandProcessor(NotificationTaskRepository notificationTaskRepository, TelegramBot telegramBot) {
+        this.notificationTaskRepository = notificationTaskRepository;
         this.telegramBot = telegramBot;
     }
 
     public enum Command {START, HELP, VIEW, SET, SET_IMPLICIT, EDIT, DELETE, UNCLEAR}
 
     ;
+
 
     public void parseAndDo(long chatId, String userInput) {
 
@@ -42,21 +43,30 @@ public class CommandProcessor {
 
         String defaultText = "Please use commands as follows\n" + helpText;
 
-        boolean checkMessageSent;
+        String reply = doAndPrepareReply(userInput, chatId);
+        sendMessage(chatId, reply);
 
+    }
+
+    public String doAndPrepareReply(String userInput, long chatId) {
+
+        String helpText = "/help : get command list\n"
+                + "send a string like to set up a notification";
+        String startText = "Hi! ) \n"
+                + "You can use this bot to set up and receive notifications regarding your events and things to do\n"
+                + helpText;
+
+        String defaultText = "Please use commands as follows\n" + helpText;
 
         switch (considerCommand(userInput)) {
             case START: {
-                sendMessage(chatId, startText);
-                break;
+                return startText;
             }
             case HELP: {
-                sendMessage(chatId, helpText);
-                break;
+                return helpText;
             }
             case VIEW: {
-                sendMessage(chatId, noties.findAllByChatId(chatId).toString());
-                break;
+                return notificationTaskRepository.findAllByChatId(chatId).toString();
             }
 
             case SET: {
@@ -64,8 +74,7 @@ public class CommandProcessor {
                     userInput = userInput.substring(5);
                 }
                 if (!setImplicitRecognize(userInput).isSetImplicit()) {
-                    sendMessage(chatId, "wrong data provided with /set command");
-                    break;
+                    return "wrong data provided with /set command";
                 }
             }
 
@@ -75,25 +84,28 @@ public class CommandProcessor {
                         takeTiming(setImplicitRecognize(userInput)),
                         setImplicitRecognize(userInput).getTaskDescription());
                 logger.info("Set command received with data as follows: " + n.toString());
-                n = noties.save(n);
-                sendMessage(chatId, "Notification regarding: " + n.getContent()
-                        + " appointed at " + n.getTimeToNotify());
-                break;
+                n = notificationTaskRepository.save(n);
+                return "Notification regarding: " + n.getContent()
+                        + " appointed at " + n.getTimeToNotify();
             }
 
             case DELETE: {
-                sendMessage(chatId, "Command DELETE is under construction yet, sorry...");
-                break;
+                return "Command DELETE is under construction yet, sorry...";
             }
 
+            case EDIT: {
+                return "Command EDIT is under construction yet, sorry...";
+            }
+
+            case UNCLEAR:
             default: {
-                sendMessage(chatId, defaultText);
-                break;
+                return defaultText;
             }
         }
+
     }
 
-    public static Command considerCommand(String userInput) {
+    public Command considerCommand(String userInput) {
 
         if (userInput == null) {
             return Command.UNCLEAR;
@@ -132,9 +144,9 @@ public class CommandProcessor {
         return Command.UNCLEAR;
     }
 
-    public void sendMessage(long userChatId, String messageText) {
+    public Boolean sendMessage(long userChatId, String messageText) {
         SendMessage message = new SendMessage(userChatId, messageText);
-        telegramBot.execute(message);
+        return telegramBot.execute(message).isOk();
     }
 
     @Scheduled(cron = "0 0/1 * * * *")
@@ -144,7 +156,7 @@ public class CommandProcessor {
         Boolean makeSureSentOk;
         moment = moment.replaceAll("[-:T]", "").substring(0, 12);
         logger.info("moment = " + moment);
-        List<NotificationTask> thisMinuteNoties = noties.findAllByTimeToNotify(moment);
+        List<NotificationTask> thisMinuteNoties = notificationTaskRepository.findAllByTimeToNotify(moment);
         logger.info(thisMinuteNoties.toString());
 
         thisMinuteNoties.forEach(notificationTask -> {
@@ -153,9 +165,6 @@ public class CommandProcessor {
         });
     }
 
-    public void logItsOk() {
-        logger.info("it is OK");
-    }
 
     private static SetImplicitRecognition setImplicitRecognize(String userInput) {
 
@@ -263,5 +272,4 @@ public class CommandProcessor {
                     '}';
         }
     }
-
 }

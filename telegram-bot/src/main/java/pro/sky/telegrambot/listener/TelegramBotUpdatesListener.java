@@ -47,10 +47,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
             long chatId = update.message().chat().id();
             String userInput = update.message().text();
-            logger.info("User has just replied us with command: " + CommandProcessor.considerCommand(userInput).toString());
+            logger.info("User has just replied us with command: " + commandProcessor.considerCommand(userInput).toString());
             commandProcessor.parseAndDo(chatId, userInput);
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
+
 
 }
