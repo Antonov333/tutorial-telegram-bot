@@ -7,11 +7,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import pro.sky.telegrambot.model.NotificationTask;
 import pro.sky.telegrambot.repository.NotificationTaskRepository;
+import pro.sky.telegrambot.utils.ReplyText;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static pro.sky.telegrambot.utils.ReplyText.defaultText;
+import static pro.sky.telegrambot.utils.ReplyText.startText;
 
 @Service
 public class CommandProcessor {
@@ -34,20 +38,20 @@ public class CommandProcessor {
 
     public String doAndPrepareReply(String userInput, long chatId) {
 
-        String helpText = "/help : get command list\n"
+        /*String helpText = "/help : get command list\n"
                 + "send a string like to set up a notification";
         String startText = "Hi! ) \n"
                 + "You can use this bot to set up and receive notifications regarding your events and things to do\n"
                 + helpText;
 
-        String defaultText = "Please use commands as follows\n" + helpText;
+        String defaultText = "Please use commands as follows\n" + helpText;*/
 
         switch (considerCommand(userInput)) {
             case START: {
                 return startText;
             }
             case HELP: {
-                return helpText;
+                return ReplyText.helpText;
             }
             case VIEW: {
                 return notificationTaskRepository.findAllByChatId(chatId).toString();
@@ -128,14 +132,12 @@ public class CommandProcessor {
         return Command.UNCLEAR;
     }
 
-
     public List<NotificationTask> findNotificationTasks(String moment) {
         logger.info("findNotificationTasks: moment = " + moment);
         List<NotificationTask> thisMinuteNotifications = notificationTaskRepository.findAllByTimeToNotify(moment);
         logger.info(thisMinuteNotifications.toString());
         return thisMinuteNotifications;
     }
-
 
     private static SetImplicitRecognition setImplicitRecognize(String userInput) {
 

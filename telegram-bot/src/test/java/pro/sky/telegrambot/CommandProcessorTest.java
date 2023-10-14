@@ -1,30 +1,28 @@
 package pro.sky.telegrambot;
 
 import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.response.BaseResponse;
-import com.pengrad.telegrambot.response.SendResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.OngoingStubbing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.boot.test.mock.mockito.SpyBeans;
-import org.springframework.context.annotation.Bean;
+import pro.sky.telegrambot.model.NotificationTask;
 import pro.sky.telegrambot.repository.NotificationTaskRepository;
 import pro.sky.telegrambot.service.CommandProcessor;
+import pro.sky.telegrambot.utils.ReplyText;
 
 //import static jdk.internal.joptsimple.internal.Messages.message;
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static pro.sky.telegrambot.utils.ReplyText.*;
 
 //@SpringBootTest(classes = TelegramBotApplication.class)
 @ExtendWith(MockitoExtension.class)
@@ -37,8 +35,8 @@ public class CommandProcessorTest {
     @Mock
     private TelegramBot botMock;
 
-    @Mock
-    private NotificationTaskRepository repository;
+    @Spy
+    private NotificationTaskRepository notificationTaskRepositoryMock;
 
     @InjectMocks
     private CommandProcessor commandProcessorMocked;
@@ -69,19 +67,34 @@ public class CommandProcessorTest {
     }
 
     @Test
-    void sendMessageTest() {
+    void findNotificationTasksTest() {
+        List<NotificationTask> expectedList = new ArrayList<>();
+        expectedList.add(new NotificationTask(1L, 1L, "202314101000", "Notification1"));
+        expectedList.add(new NotificationTask(2L, 2L, "202314101000", "Notification2"));
+        expectedList.add(new NotificationTask(1L, 1L, "202314101000", "Notification3"));
 
-        logger.info("botMock is not null: " + !(botMock == null));
-        String expectedText = "It is OK";
+        String moment = "202314101000";
 
-        Long chatId = 1111L;
-        SendMessage testSendMessage = new SendMessage(chatId, expectedText);
-        Boolean expected = new Boolean(true);
+        when(notificationTaskRepositoryMock.findAllByTimeToNotify(moment)).thenReturn(expectedList);
 
-        verify(botMock, times(0)).execute(any());
+        assertEquals(expectedList, commandProcessorMocked.findNotificationTasks(moment));
 
     }
 
+    @Test
+    void doAndPrepareReplyWhenUnclear() {
+        assertEquals(unclearText, commandProcessorMocked.doAndPrepareReply("unclear input", 1111L));
+    }
+
+    @Test
+    void doAndPrepareReplyWhenStart() {
+        assertEquals(startText, commandProcessorMocked.doAndPrepareReply("/start", 1111L));
+    }
+
+    @Test
+    void doAndPrepareReplyWhenHelp() {
+        assertEquals(helpText, commandProcessorMocked.doAndPrepareReply("/help", 1111L));
+    }
 
 
 }
