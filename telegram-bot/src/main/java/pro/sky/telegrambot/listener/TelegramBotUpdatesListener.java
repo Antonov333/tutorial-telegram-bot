@@ -7,11 +7,14 @@ import com.pengrad.telegrambot.request.SendMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import pro.sky.telegrambot.model.NotificationTask;
 import pro.sky.telegrambot.repository.NotificationTaskRepository;
 import pro.sky.telegrambot.service.CommandProcessor;
 
 import javax.annotation.PostConstruct;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -57,6 +60,22 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private void sendMessage(long userChatId, String messageText) {
         SendMessage message = new SendMessage(userChatId, messageText);
         telegramBot.execute(message);
+    }
+
+    @Scheduled(cron = "0 0/1 * * * *")
+    public void sendNotifications() {
+        LocalDateTime localDateTime = LocalDateTime.now();
+        String moment = localDateTime.toString();
+        Boolean makeSureSentOk;
+        moment = moment.replaceAll("[-:T]", "").substring(0, 12);
+        logger.info("moment = " + moment);
+        List<NotificationTask> thisMinuteNotificationTasks = commandProcessor.findNotificationTasks(moment);
+        logger.info(thisMinuteNotificationTasks.toString());
+
+        thisMinuteNotificationTasks.forEach(notificationTask -> {
+            logger.info(notificationTask.toString());
+            sendMessage(notificationTask.getChatId(), notificationTask.getContent());
+        });
     }
 
 

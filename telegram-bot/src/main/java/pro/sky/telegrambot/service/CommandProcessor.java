@@ -4,7 +4,6 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pro.sky.telegrambot.model.NotificationTask;
 import pro.sky.telegrambot.repository.NotificationTaskRepository;
@@ -32,21 +31,6 @@ public class CommandProcessor {
 
     ;
 
-
-    public void parseAndDo(long chatId, String userInput) {
-
-        String helpText = "/help : get command list\n"
-                + "send a string like to set up a notification";
-        String startText = "Hi! ) \n"
-                + "You can use this bot to set up and receive notifications regarding your events and things to do\n"
-                + helpText;
-
-        String defaultText = "Please use commands as follows\n" + helpText;
-
-        String reply = doAndPrepareReply(userInput, chatId);
-        sendMessage(chatId, reply);
-
-    }
 
     public String doAndPrepareReply(String userInput, long chatId) {
 
@@ -144,25 +128,12 @@ public class CommandProcessor {
         return Command.UNCLEAR;
     }
 
-    public Boolean sendMessage(long userChatId, String messageText) {
-        SendMessage message = new SendMessage(userChatId, messageText);
-        return telegramBot.execute(message).isOk();
-    }
 
-    @Scheduled(cron = "0 0/1 * * * *")
-    public void sendNotifications() {
-        LocalDateTime localDateTime = LocalDateTime.now();
-        String moment = localDateTime.toString();
-        Boolean makeSureSentOk;
-        moment = moment.replaceAll("[-:T]", "").substring(0, 12);
-        logger.info("moment = " + moment);
-        List<NotificationTask> thisMinuteNoties = notificationTaskRepository.findAllByTimeToNotify(moment);
-        logger.info(thisMinuteNoties.toString());
-
-        thisMinuteNoties.forEach(notificationTask -> {
-            logger.info(notificationTask.toString());
-            sendMessage(notificationTask.getChatId(), notificationTask.getContent());
-        });
+    public List<NotificationTask> findNotificationTasks(String moment) {
+        logger.info("findNotificationTasks: moment = " + moment);
+        List<NotificationTask> thisMinuteNotifications = notificationTaskRepository.findAllByTimeToNotify(moment);
+        logger.info(thisMinuteNotifications.toString());
+        return thisMinuteNotifications;
     }
 
 
