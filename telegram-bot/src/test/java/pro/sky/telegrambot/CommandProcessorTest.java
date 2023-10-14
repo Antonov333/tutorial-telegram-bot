@@ -78,12 +78,8 @@ public class CommandProcessorTest {
         SendMessage testSendMessage = new SendMessage(chatId, expectedText);
         Boolean expected = new Boolean(true);
 
-        doReturn(null).when(botMock).execute(any());
-        assertNull(commandProcessorMocked.sendMessage(chatId, expectedText));
+        verify(botMock, times(0)).execute(any());
 
-//        verify(botMock, times(0)).execute(any());
-//        String actualMessage = botMock.execute(testSendMessage).message().text();
-//        logger.info("Actual text: " + actualMessage);
     }
 
 

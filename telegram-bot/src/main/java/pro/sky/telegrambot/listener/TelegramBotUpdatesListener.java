@@ -3,6 +3,7 @@ package pro.sky.telegrambot.listener;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.SendMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,9 +49,14 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             long chatId = update.message().chat().id();
             String userInput = update.message().text();
             logger.info("User has just replied us with command: " + commandProcessor.considerCommand(userInput).toString());
-            commandProcessor.parseAndDo(chatId, userInput);
+            sendMessage(chatId, commandProcessor.doAndPrepareReply(userInput, chatId));
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
+    }
+
+    private void sendMessage(long userChatId, String messageText) {
+        SendMessage message = new SendMessage(userChatId, messageText);
+        telegramBot.execute(message);
     }
 
 
