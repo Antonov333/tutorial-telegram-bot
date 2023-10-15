@@ -1,7 +1,5 @@
 package pro.sky.telegrambot.service;
 
-import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.request.SendMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -9,26 +7,25 @@ import pro.sky.telegrambot.model.NotificationTask;
 import pro.sky.telegrambot.repository.NotificationTaskRepository;
 import pro.sky.telegrambot.utils.ReplyText;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static pro.sky.telegrambot.utils.ReplyText.defaultText;
-import static pro.sky.telegrambot.utils.ReplyText.startText;
+import static pro.sky.telegrambot.utils.ReplyText.*;
 
 @Service
 public class CommandProcessor {
 
     private final NotificationTaskRepository notificationTaskRepository;
 
-    private final TelegramBot telegramBot;
+//    private final TelegramBot telegramBot;
 
     static Logger logger = LoggerFactory.getLogger("CommandProcessor Logger");
 
-    public CommandProcessor(NotificationTaskRepository notificationTaskRepository, TelegramBot telegramBot) {
+    public CommandProcessor(NotificationTaskRepository notificationTaskRepository
+            /*, TelegramBot telegramBot*/) {
         this.notificationTaskRepository = notificationTaskRepository;
-        this.telegramBot = telegramBot;
+//        this.telegramBot = telegramBot;
     }
 
     public enum Command {START, HELP, VIEW, SET, SET_IMPLICIT, EDIT, DELETE, UNCLEAR}
@@ -38,14 +35,6 @@ public class CommandProcessor {
 
     public String doAndPrepareReply(String userInput, long chatId) {
 
-        /*String helpText = "/help : get command list\n"
-                + "send a string like to set up a notification";
-        String startText = "Hi! ) \n"
-                + "You can use this bot to set up and receive notifications regarding your events and things to do\n"
-                + helpText;
-
-        String defaultText = "Please use commands as follows\n" + helpText;*/
-
         switch (considerCommand(userInput)) {
             case START: {
                 return startText;
@@ -54,7 +43,8 @@ public class CommandProcessor {
                 return ReplyText.helpText;
             }
             case VIEW: {
-                return notificationTaskRepository.findAllByChatId(chatId).toString();
+                List<NotificationTask> list = notificationTaskRepository.findAllByChatId(chatId);
+                return list.toString();
             }
 
             case SET: {
@@ -62,7 +52,7 @@ public class CommandProcessor {
                     userInput = userInput.substring(5);
                 }
                 if (!setImplicitRecognize(userInput).isSetImplicit()) {
-                    return "wrong data provided with /set command";
+                    return ReplyText.setWrongText;
                 }
             }
 
@@ -73,16 +63,16 @@ public class CommandProcessor {
                         setImplicitRecognize(userInput).getTaskDescription());
                 logger.info("Set command received with data as follows: " + n.toString());
                 n = notificationTaskRepository.save(n);
-                return "Notification regarding: " + n.getContent()
-                        + " appointed at " + n.getTimeToNotify();
+                return setText1 /*"Notification regarding: "*/ + n.getContent()
+                        + setText2 /*" appointed at "*/ + n.getTimeToNotify();
             }
 
             case DELETE: {
-                return "Command DELETE is under construction yet, sorry...";
+                return deleteUnderConstructionText;
             }
 
             case EDIT: {
-                return "Command EDIT is under construction yet, sorry...";
+                return editUnderConstructionText;
             }
 
             case UNCLEAR:
@@ -119,6 +109,10 @@ public class CommandProcessor {
         }
         if (input.startsWith("/set")) {
             return Command.SET;
+        }
+
+        if (input.startsWith("/edit")) {
+            return Command.EDIT;
         }
 
         if (input.startsWith("/delete")) {

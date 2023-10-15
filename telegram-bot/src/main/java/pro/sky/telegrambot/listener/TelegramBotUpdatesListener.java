@@ -66,7 +66,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     public void sendNotifications() {
         LocalDateTime localDateTime = LocalDateTime.now();
         String moment = localDateTime.toString();
-        Boolean makeSureSentOk;
         moment = moment.replaceAll("[-:T]", "").substring(0, 12);
         logger.info("moment = " + moment);
         List<NotificationTask> thisMinuteNotificationTasks = commandProcessor.findNotificationTasks(moment);

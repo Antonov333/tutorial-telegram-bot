@@ -12,4 +12,14 @@ public class ReplyText {
 
     public static String unclearText = defaultText;
 
+    public static String setWrongText = "Wrong data provided with /set command";
+
+    public static String setText1 = "Notification regarding: ";
+
+    public static String setText2 = " appointed at ";
+
+    public static String deleteUnderConstructionText = "Command DELETE is under construction yet, sorry...";
+
+    public static String editUnderConstructionText = "Command EDIT is under construction yet, sorry...";
+
 }

@@ -1,7 +1,6 @@
 package pro.sky.telegrambot;
 
 import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.request.SendMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,7 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import pro.sky.telegrambot.model.NotificationTask;
 import pro.sky.telegrambot.repository.NotificationTaskRepository;
 import pro.sky.telegrambot.service.CommandProcessor;
-import pro.sky.telegrambot.utils.ReplyText;
 
 //import static jdk.internal.joptsimple.internal.Messages.message;
 import java.util.ArrayList;
@@ -96,5 +94,53 @@ public class CommandProcessorTest {
         assertEquals(helpText, commandProcessorMocked.doAndPrepareReply("/help", 1111L));
     }
 
+    @Test
+    void doAndPrepareReplyWhenView() {
+
+        List<NotificationTask> expectedList = new ArrayList<>();
+        expectedList.add(new NotificationTask(1L, 1L, "202314101000", "Notification1"));
+        expectedList.add(new NotificationTask(2L, 2L, "202314101000", "Notification2"));
+        expectedList.add(new NotificationTask(1L, 1L, "202314101000", "Notification3"));
+
+        long chatId = 1111L;
+        when(notificationTaskRepositoryMock.findAllByChatId(chatId)).thenReturn(expectedList);
+
+        assertEquals(expectedList.toString(), commandProcessorMocked.doAndPrepareReply("/view", chatId));
+
+    }
+
+    static long chatId = 1111L;
+
+    @Test
+    void doAndPrepareReplyWhenSet() {
+
+        String testSetInput = "/set 15.10.2023 13:24 Test /set command";
+
+        NotificationTask n = new NotificationTask(1L, chatId, "202310151324",
+                " Test /set command");
+
+        String expected = "Notification regarding:  Test /set command appointed at 202310151324";
+
+        when(notificationTaskRepositoryMock.save(any())).thenReturn(n);
+
+        assertEquals(expected, commandProcessorMocked.doAndPrepareReply(testSetInput, chatId));
+
+    }
+
+    @Test
+    void doAndPrepareReplyWhenSetWrong() {
+        assertEquals(setWrongText,
+                commandProcessorMocked.doAndPrepareReply("/set 1234 wrong data with set command", chatId));
+    }
+
+    @Test
+    void doAndPrepareReplyWhenEdit() {
+        assertEquals(editUnderConstructionText, commandProcessorMocked.doAndPrepareReply("/edit", chatId));
+    }
+
+    @Test
+    void doAndPrepareReplyWhenDelete() {
+        assertEquals(deleteUnderConstructionText, commandProcessorMocked.doAndPrepareReply("/delete", chatId));
+    }
 
 }
